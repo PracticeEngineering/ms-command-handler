@@ -7,18 +7,16 @@ import { EVENT_PUBLISHER } from './application/ports/ievent.publisher';
 import { PubSubEventPublisher } from './infraestructure/event-publishing/pubsub.event.publisher';
 import { CreateCheckpointUseCase } from './application/use-cases/create-checkpoint.use-case';
 import { CheckpointsController } from './infraestructure/controllers/checkpoints.controller';
+import { DatabaseModule } from './infraestructure/database/database.module';
 import { PubSubModule } from './infraestructure/pubsub/pubsub.module';
-import { join } from 'path';
 
 @Module({
-  imports: [PubSubModule],
+  imports: [PubSubModule, DatabaseModule],
   controllers: [CheckpointsController],
   providers: [
     // Casos de Uso
     CreateCheckpointUseCase,
-
     // Proveedores de Infraestructura
-    databaseProvider,
     {
       provide: SHIPMENT_REPOSITORY,
       useClass: PostgresShipmentRepository,
