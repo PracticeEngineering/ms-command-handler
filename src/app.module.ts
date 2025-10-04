@@ -1,10 +1,28 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { SHIPMENT_REPOSITORY } from './application/ports/ishipment.repository';
+import { PostgresShipmentRepository } from './infraestructure/repositories/postgres.shipment.repository';
+import { EVENT_PUBLISHER } from './application/ports/ievent.publisher';
+import { PubSubEventPublisher } from './infraestructure/event-publishing/pubsub.event.publisher';
+import { CreateCheckpointUseCase } from './application/use-cases/create-checkpoint.use-case';
+import { CheckpointsController } from './infraestructure/controllers/checkpoints.controller';
+import { DatabaseModule } from './infraestructure/database/database.module';
+import { PubSubModule } from './infraestructure/pubsub/pubsub.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [PubSubModule, DatabaseModule],
+  controllers: [CheckpointsController],
+  providers: [
+    // Casos de Uso
+    CreateCheckpointUseCase,
+    // Proveedores de infraestructure
+    {
+      provide: SHIPMENT_REPOSITORY,
+      useClass: PostgresShipmentRepository,
+    },
+    {
+      provide: EVENT_PUBLISHER,
+      useClass: PubSubEventPublisher,
+    },
+  ],
 })
 export class AppModule {}
