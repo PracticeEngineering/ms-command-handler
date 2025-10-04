@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { databaseProvider } from './infraestructure/database/database.provider';
 import { SHIPMENT_REPOSITORY } from './application/ports/ishipment.repository';
 import { PostgresShipmentRepository } from './infraestructure/repositories/postgres.shipment.repository';
 import { EVENT_PUBLISHER } from './application/ports/ievent.publisher';
@@ -16,7 +14,7 @@ import { PubSubModule } from './infraestructure/pubsub/pubsub.module';
   providers: [
     // Casos de Uso
     CreateCheckpointUseCase,
-    // Proveedores de Infraestructura
+    // Proveedores de infraestructure
     {
       provide: SHIPMENT_REPOSITORY,
       useClass: PostgresShipmentRepository,
