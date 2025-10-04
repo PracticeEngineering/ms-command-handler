@@ -10,5 +10,6 @@ async function bootstrap() {
   
   app.enableShutdownHooks();
   await app.listen(port);
+  console.log(`Checkpoint processor service started on port ${port}, and is listening for Pub/Sub messages.`);
 }
 bootstrap();
