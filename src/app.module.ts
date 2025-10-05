@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SHIPMENT_REPOSITORY } from './application/ports/ishipment.repository';
-import { PostgresShipmentRepository } from './infraestructure/repositories/postgres.shipment.repository';
+import { PostgresShipmentRepository } from './infrastructure/repositories/postgres.shipment.repository';
 import { EVENT_PUBLISHER } from './application/ports/ievent.publisher';
-import { PubSubEventPublisher } from './infraestructure/event-publishing/pubsub.event.publisher';
+import { PubSubEventPublisher } from './infrastructure/event-publishing/pubsub.event.publisher';
 import { CreateCheckpointUseCase } from './application/use-cases/create-checkpoint.use-case';
-import { CheckpointsController } from './infraestructure/controllers/checkpoints.controller';
-import { DatabaseModule } from './infraestructure/database/database.module';
-import { PubSubModule } from './infraestructure/pubsub/pubsub.module';
+import { CheckpointsController } from './infrastructure/controllers/checkpoints.controller';
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { PubSubModule } from './infrastructure/pubsub/pubsub.module';
 
 @Module({
   imports: [PubSubModule, DatabaseModule],

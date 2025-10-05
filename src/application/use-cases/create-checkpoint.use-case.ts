@@ -3,7 +3,7 @@ import type { IShipmentRepository } from '../ports/ishipment.repository';
 import { SHIPMENT_REPOSITORY } from '../ports/ishipment.repository';
 import type { IEventPublisher } from '../ports/ievent.publisher';
 import { EVENT_PUBLISHER } from '../ports/ievent.publisher';
-import { CreateCheckpointDto } from '../../infraestructure/controllers/dtos/create-checkpoint.dto';
+import { CreateCheckpointDto } from '../../infrastructure/controllers/dtos/create-checkpoint.dto';
 
 @Injectable()
 export class CreateCheckpointUseCase {
