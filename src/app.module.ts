@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { SHIPMENT_REPOSITORY } from './application/ports/ishipment.repository';
 import { PostgresShipmentRepository } from './infrastructure/repositories/postgres.shipment.repository';
 import { EVENT_PUBLISHER } from './application/ports/ievent.publisher';
@@ -7,9 +7,11 @@ import { CreateCheckpointUseCase } from './application/use-cases/create-checkpoi
 import { CheckpointsController } from './infrastructure/controllers/checkpoints.controller';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { PubSubModule } from './infrastructure/pubsub/pubsub.module';
+import { LoggerModule } from './infrastructure/logger/logger.module';
+import { LoggerMiddleware } from './infrastructure/logger/logger.middleware';
 
 @Module({
-  imports: [PubSubModule, DatabaseModule],
+  imports: [PubSubModule, DatabaseModule, LoggerModule],
   controllers: [CheckpointsController],
   providers: [
     // Casos de Uso
@@ -25,4 +27,8 @@ import { PubSubModule } from './infrastructure/pubsub/pubsub.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

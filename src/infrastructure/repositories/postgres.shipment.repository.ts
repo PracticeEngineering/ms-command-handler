@@ -3,29 +3,45 @@ import { Pool } from 'pg';
 import { IShipmentRepository } from '../../application/ports/ishipment.repository';
 import { Shipment } from '../../domain/shipment.entity';
 import { DB_CONNECTION } from '../database/database.provider';
+import { LOGGER_PROVIDER_TOKEN } from '../logger/logger.constants';
+import type { Logger } from 'pino';
 
 @Injectable()
 export class PostgresShipmentRepository implements IShipmentRepository {
-  constructor(@Inject(DB_CONNECTION) private readonly pool: Pool) {}
+  constructor(
+    @Inject(DB_CONNECTION) private readonly pool: Pool,
+    @Inject(LOGGER_PROVIDER_TOKEN) private readonly logger: Logger,
+  ) {}
 
   async findByTrackingId(trackingId: string): Promise<Shipment | null> {
     const query = 'SELECT * FROM shipments WHERE tracking_id = $1 LIMIT 1';
-    const result = await this.pool.query(query, [trackingId]);
+    this.logger.info({ trackingId, query }, 'Executing findByTrackingId query.');
+    try {
+      const result = await this.pool.query(query, [trackingId]);
 
-    if (result.rowCount === 0) {
-      return null;
+      if (result.rowCount === 0) {
+        this.logger.debug({ trackingId }, 'Shipment not found in database.');
+        return null;
+      }
+
+      const row = result.rows[0];
+      this.logger.debug({ trackingId, row }, 'Shipment found in database.');
+      
+      // Mapeo manual de la fila de la BD al objeto de dominio
+      const shipment = new Shipment();
+      shipment.id = row.id;
+      shipment.trackingId = row.tracking_id;
+      shipment.currentStatus = row.current_status;
+      shipment.createdAt = row.created_at;
+      shipment.updatedAt = row.updated_at;
+
+      return shipment;
+    } catch (error) {
+      this.logger.error(
+        { trackingId, query, error },
+        'Error executing findByTrackingId query.',
+      );
+      throw error;
     }
-
-    const row = result.rows[0];
-    
-    // Mapeo manual de la fila de la BD al objeto de dominio
-    const shipment = new Shipment();
-    shipment.id = row.id;
-    shipment.trackingId = row.tracking_id;
-    shipment.currentStatus = row.current_status;
-    shipment.createdAt = row.created_at;
-    shipment.updatedAt = row.updated_at;
-
-    return shipment;
   }
 }
