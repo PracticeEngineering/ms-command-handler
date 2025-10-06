@@ -1,13 +1,36 @@
 # Service: ms-command-handler
 
-The primary write-side API and command handler for the Tracking System. This service is the main entry point for creating new shipments and registering tracking events.
+The primary write-side API and command handler for the Tracking System. This service is the main entry point for registering tracking events.
 
 ## Core Responsibilities
 
--   Exposes a synchronous HTTP API for creating `Shipments` and `Checkpoints`.
--   Performs business rule validations (e.g., ensures a `Shipment` exists before accepting a `Checkpoint`).
--   Publishes events to a message broker for asynchronous processing by other services.
--   Follows Clean Architecture principles to separate business logic from infrastructure concerns.
+-   **Exposes Synchronous API**: Provides an HTTP endpoint for creating `Checkpoints`.
+-   **Validates Business Rules**: Ensures a `Shipment` exists and that the new checkpoint is not a duplicate.
+-   **Publishes Events**: Emits an event to a message broker for asynchronous processing after a checkpoint is accepted.
+-   **Follows Clean Architecture**: Separates business logic from infrastructure concerns for better maintainability and testability.
+
+## Architecture
+
+This service is built following the principles of **Clean Architecture**. This creates a separation of concerns that isolates the core business logic from external dependencies.
+
+-   **Domain**: Contains the core business entities and rules (`Shipment`).
+-   **Application**: Orchestrates the business logic by using use cases (`CreateCheckpointUseCase`) and defines the ports (interfaces) for external dependencies like repositories and event publishers.
+-   **Infrastructure**: Implements the ports defined in the application layer. This includes controllers, database repositories, and event publishing clients.
+
+## Project Structure
+
+```
+src/
+├── application/
+│   ├── ports/          # Interfaces for repositories, publishers, etc.
+│   └── use-cases/      # Core business logic orchestration.
+├── domain/             # Business entities and their logic.
+└── infrastructure/
+    ├── controllers/    # NestJS controllers for handling HTTP requests.
+    ├── database/       # Database connection and repository implementations.
+    ├── event-publishing/ # Implementation for publishing events (e.g., to Pub/Sub).
+    └── logger/         # Logging configuration and middleware.
+```
 
 ## Technology Stack
 
@@ -15,6 +38,7 @@ The primary write-side API and command handler for the Tracking System. This ser
 -   **Language**: TypeScript
 -   **Database Interaction**: `pg` (raw SQL, no ORM) via Repository Pattern
 -   **Messaging**: `@google-cloud/pubsub` client library
+-   **Logging**: `pino` for structured, high-performance logging.
 
 ## Running the Service (Local Development)
 
@@ -40,18 +64,6 @@ The service will be available on its designated port (e.g., `http://localhost:30
 
 ## API Endpoints
 
-### Create a Shipment
-
--   **Endpoint**: `POST /shipments`
--   **Description**: Registers a new shipment in the system.
--   **Request Body**:
-    ```json
-    {
-      "trackingId": "GUIA-NEW-001"
-    }
-    ```
--   **Success Response**: `201 Created`
-
 ### Create a Checkpoint
 
 -   **Endpoint**: `POST /checkpoints`
@@ -64,13 +76,15 @@ The service will be available on its designated port (e.g., `http://localhost:30
       "location": "Main Warehouse"
     }
     ```
--   **Success Response**: `202 Accepted`
--   **Error Response**: `404 Not Found` if the `trackingId` does not exist.
+-   **Success Response**: `202 Accepted` - Indicates that the request has been accepted for processing.
+-   **Error Responses**:
+    -   `404 Not Found`: If the `trackingId` does not correspond to an existing shipment.
+    -   `409 Conflict`: If the shipment is already in the status being reported (i.e., a duplicate checkpoint).
 
 ## Events Published
 
 -   **Topic**: `checkpoints-topic`
--   **Message Payload**: The same JSON object as the request body of the `POST /checkpoints` endpoint.
+-   **Message Payload**: The same JSON object as the request body of the `POST /checkpoints` endpoint. This event is consumed by downstream services (like `ms-checkpoint-processor`) to handle the actual persistence of the checkpoint.
 
 ## How to Run Tests
 
@@ -80,3 +94,4 @@ yarn test
 
 # E2E tests
 yarn test:e2e
+```
