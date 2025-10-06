@@ -1,8 +1,8 @@
 import { Controller, Post, Body, ValidationPipe, HttpCode, HttpStatus, Inject } from '@nestjs/common';
-import { CreateCheckpointUseCase } from '../../application/use-cases/create-checkpoint.use-case';
+import { CreateCheckpointUseCase } from '../../application/use-cases/create.checkpoint.use-case';
 import { CreateCheckpointDto } from './dtos/create-checkpoint.dto'; 
 import { LOGGER_PROVIDER_TOKEN } from '../logger/logger.constants';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 
 @Controller('checkpoints')
 export class CheckpointsController {

@@ -3,7 +3,7 @@ import { IEventPublisher } from '../../application/ports/ievent.publisher';
 import { PUBSUB_CLIENT } from '../pubsub/pubsub.module';
 import { PubSub } from '@google-cloud/pubsub';
 import { LOGGER_PROVIDER_TOKEN } from '../logger/logger.constants';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 
 @Injectable()
 export class PubSubEventPublisher implements IEventPublisher {
