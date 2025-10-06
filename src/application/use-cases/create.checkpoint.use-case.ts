@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import type { IShipmentRepository } from '../ports/ishipment.repository';
 import { SHIPMENT_REPOSITORY } from '../ports/ishipment.repository';
 import type { IEventPublisher } from '../ports/ievent.publisher';
@@ -18,30 +18,30 @@ export class CreateCheckpointUseCase {
   ) {}
 
   async execute(command: CreateCheckpointDto): Promise<void> {
+
     this.logger.info(
       { command },
       'Starting CreateCheckpointUseCase execution.',
     );
-    // Regla de negocio: Validar que el envío exista
-    const shipment = await this.shipmentRepository.findByTrackingId(
-      command.trackingId,
-    );
+
+    const shipment = await this.shipmentRepository.findByTrackingId(command.trackingId);
 
     if (!shipment) {
       this.logger.warn(
         { trackingId: command.trackingId },
         'Shipment not found.',
       );
-      throw new NotFoundException(
-        `Shipment with trackingId "${command.trackingId}" not found.`,
+      throw new NotFoundException(`Shipment with trackingId "${command.trackingId}" not found.`);
+    }
+
+    if (shipment.currentStatus === command.status) {
+      this.logger.warn({ trackingId: command.trackingId, status: command.status }, 'Duplicate checkpoint status detected. Request rejected.');
+      throw new ConflictException(
+        `Shipment with trackingId "${command.trackingId}" is already in status "${command.status}". No new checkpoint created.`
       );
     }
 
-    // Si existe, publicar el evento para procesamiento asíncrono
-    this.eventPublisher.publish('checkpoints-topic', command);
-    this.logger.info(
-      { trackingId: command.trackingId },
-      'Checkpoint created successfully and event published.',
-    );
+    this.logger.info({ trackingId: command.trackingId, status: command.status }, 'Checkpoint validated. Publishing event.');
+    await this.eventPublisher.publish('checkpoints-topic', command);
   }
 }
