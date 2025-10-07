@@ -2,14 +2,15 @@ import { Shipment } from './shipment.entity';
 
 describe('Shipment Entity', () => {
   it('should create a shipment instance and assign properties correctly', () => {
-    const shipment = new Shipment();
     const now = new Date();
-
-    shipment.id = 'test-uuid';
-    shipment.trackingId = 'test-tracking-id';
-    shipment.currentStatus = 'CREATED';
-    shipment.createdAt = now;
-    shipment.updatedAt = now;
+    const shipmentData = {
+      id: 'test-uuid',
+      trackingId: 'test-tracking-id',
+      currentStatus: 'CREATED',
+      createdAt: now,
+      updatedAt: now,
+    };
+    const shipment = new Shipment(shipmentData);
 
     expect(shipment).toBeInstanceOf(Shipment);
     expect(shipment.id).toBe('test-uuid');
