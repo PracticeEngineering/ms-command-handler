@@ -6,6 +6,7 @@ import { EVENT_PUBLISHER } from '../ports/ievent.publisher';
 import { CreateCheckpointDto } from '../../infrastructure/controllers/dtos/create-checkpoint.dto';
 import { LOGGER_PROVIDER_TOKEN } from '../../infrastructure/logger/logger.constants';
 import type { Logger } from 'pino';
+import { Shipment } from '../../domain/shipment.entity';
 
 @Injectable()
 export class CreateCheckpointUseCase {
@@ -24,9 +25,9 @@ export class CreateCheckpointUseCase {
       'Starting CreateCheckpointUseCase execution.',
     );
 
-    const shipment = await this.shipmentRepository.findByTrackingId(command.trackingId);
+    const shipmentData = await this.shipmentRepository.findByTrackingId(command.trackingId);
 
-    if (!shipment) {
+    if (!shipmentData) {
       this.logger.warn(
         { trackingId: command.trackingId },
         'Shipment not found.',
@@ -34,7 +35,9 @@ export class CreateCheckpointUseCase {
       throw new NotFoundException(`Shipment with trackingId "${command.trackingId}" not found.`);
     }
 
-    if (shipment.currentStatus === command.status) {
+    const shipment = new Shipment(shipmentData);
+
+    if (shipment.isDuplicateStatus(command.status)) {
       this.logger.warn({ trackingId: command.trackingId, status: command.status }, 'Duplicate checkpoint status detected. Request rejected.');
       throw new ConflictException(
         `Shipment with trackingId "${command.trackingId}" is already in status "${command.status}". No new checkpoint created.`
