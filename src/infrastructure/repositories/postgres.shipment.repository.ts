@@ -28,12 +28,13 @@ export class PostgresShipmentRepository implements IShipmentRepository {
       this.logger.debug({ trackingId, row }, 'Shipment found in database.');
       
       // Mapeo manual de la fila de la BD al objeto de dominio
-      const shipment = new Shipment();
-      shipment.id = row.id;
-      shipment.trackingId = row.tracking_id;
-      shipment.currentStatus = row.current_status;
-      shipment.createdAt = row.created_at;
-      shipment.updatedAt = row.updated_at;
+      const shipment = new Shipment({
+        id: row.id,
+        trackingId: row.tracking_id,
+        currentStatus: row.current_status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      });
 
       return shipment;
     } catch (error) {
